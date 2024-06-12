@@ -1,0 +1,19 @@
+{
+  "name": "@thesmart/event-emitter",
+  "version": "0.1.0",
+  "exports": "./mod.ts",
+  "imports": {
+    "@std/assert": "jsr:@std/assert",
+    "@std/testing": "jsr:@std/testing"
+  },
+  "tasks": {
+    "watch": "deno test --fail-fast --watch",
+    "test": "deno test --parallel",
+    "coverage": "rm -rf .profile/* && deno test --coverage=.profile && deno coverage .profile --html"
+  },
+  "fmt": {
+    "lineWidth": 80,
+    "singleQuote": true,
+    "exclude": ["README.md", "LICENSE"]
+  }
+}
