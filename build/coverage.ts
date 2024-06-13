@@ -114,4 +114,4 @@ async function genCodeCoverageStats() {
 }
 
 const codeCoverage = await genCodeCoverageStats();
-console.log(codeCoverage);
+console.log(JSON.stringify(codeCoverage, undefined, '  '));
