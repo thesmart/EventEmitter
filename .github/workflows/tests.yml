@@ -26,4 +26,14 @@ jobs:
         run: deno lint
 
       - name: Run tests
-        run: deno test --parallel
+        run: deno test --parallel --coverage=.profile
+
+      - name: Run test coverage reporter
+        run: deno run --allow-all build/coverage.ts > build/coverage.json
+
+      - name: Upload coverage as an asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage
+          path: build/coverage.json
+          compression-level: 0
