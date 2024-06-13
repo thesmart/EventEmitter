@@ -24,10 +24,10 @@ describe('EventEmitter', () => {
 
   it('allows adding and removing event listeners', () => {
     const emitter = new EventEmitter();
-    // deno-lint-ignore no-explicit-any
+    // deno-lint-ignore no-explicit-any no-unused-vars
     const listenerA = (...args: any[]) => {
     };
-    // deno-lint-ignore no-explicit-any
+    // deno-lint-ignore no-explicit-any no-unused-vars
     const listenerB = (...args: any[]) => {
     };
 
@@ -120,7 +120,7 @@ describe('EventEmitter', () => {
   it('emits events once', () => {
     const emitter = new EventEmitter();
     let counter = 0;
-    const handler = (eventName: string) => {
+    const handler = () => {
       ++counter;
     };
 
@@ -156,11 +156,13 @@ describe('EventEmitter', () => {
   it('has new/remove events for adding/removing listeners', () => {
     const emitter = new EventEmitter();
     const counter = { count: 0, log: [] as (string | symbol)[] };
+    // deno-lint-ignore no-unused-vars
     emitter.addEventListener(NewListenerEvent, (e, args) => {
       assertEquals(e, NewListenerEvent);
       ++counter.count;
       counter.log.push(NewListenerEvent);
     });
+    // deno-lint-ignore no-unused-vars
     emitter.addEventListener(RemoveListenerEvent, (e, args) => {
       assertEquals(e, RemoveListenerEvent);
       --counter.count;
