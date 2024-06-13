@@ -9,7 +9,7 @@
   "tasks": {
     "watch": "deno test --fail-fast --watch",
     "test": "deno test --parallel",
-    "coverage": "rm -rf .profile/* && deno test --coverage=.profile && deno coverage .profile --html"
+    "coverage": "deno test --coverage=.profile && deno coverage .profile --html"
   },
   "fmt": {
     "lineWidth": 80,

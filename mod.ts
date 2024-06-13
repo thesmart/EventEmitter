@@ -44,6 +44,9 @@ export class TooManyListeners extends Error {
  */
 export const DEFAULT_MAX_LISTENERS = 10;
 
+export const NewListenerEvent = 'newListener';
+export const RemoveListenerEvent = 'removeListener';
+
 // deno-lint-ignore no-explicit-any
 type GenericFunction = (...args: any[]) => any;
 
@@ -140,7 +143,7 @@ export class EventEmitter {
       this._listenerMeta.set(eventName, metaMap);
     }
 
-    this.emit('newListener', eventName, listener, options);
+    this.emit(NewListenerEvent, eventName, listener, options);
     return this;
   }
 
@@ -163,7 +166,7 @@ export class EventEmitter {
       return false;
     }
 
-    this.emit('removeListener', eventName, listener);
+    this.emit(RemoveListenerEvent, eventName, listener);
     listenerSet.delete(listener);
     this._listenerMeta.get(eventName)?.delete(listener);
 
@@ -176,27 +179,37 @@ export class EventEmitter {
    * @returns True if removed, false if not found.
    */
   removeAllListeners(eventName?: string | symbol): boolean {
-    if (!eventName) {
-      // remove all events in reverse order
-      const reversedEvents = Array.from(this._listeners.keys()).reverse();
+    if (eventName) {
+      // for an event, remove all listeners in reverse order
+      const listenerSet = this._listeners.get(eventName);
+      if (!listenerSet) {
+        return false;
+      }
+      const reversedListeners = Array.from(listenerSet).reverse();
+      for (const listener of reversedListeners) {
+        this.emit(RemoveListenerEvent, eventName, listener);
+      }
+      this._listeners.delete(eventName);
+      this._listenerMeta.delete(eventName);
+
+      return true;
+    } else {
+      // remove all events in reverse order but `RemoveListenerEvent` is last
+      const reversedEvents = Array.from(this._listeners.keys()).reverse().sort(
+        (a, b): number => {
+          if (a === RemoveListenerEvent) {
+            return 1;
+          } else if (b === RemoveListenerEvent) {
+            return -1;
+          }
+          return 0;
+        },
+      );
       for (const key of reversedEvents) {
         this.removeAllListeners(key);
       }
       return reversedEvents.length > 0;
     }
-
-    const listenerSet = this._listeners.get(eventName);
-    if (!listenerSet) {
-      return false;
-    }
-
-    this._listeners.delete(eventName);
-    this._listenerMeta.delete(eventName);
-    const reversedListeners = Array.from(listenerSet).reverse();
-    for (const listener of reversedListeners) {
-      this.emit('removeListener', eventName, listener);
-    }
-    return true;
   }
 
   /**

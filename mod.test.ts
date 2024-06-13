@@ -1,6 +1,12 @@
 import { describe, it } from '@std/testing/bdd';
 import { assertEquals, assertThrows } from '@std/assert';
-import { EventEmitter, TooManyListeners, UnhandledError } from './mod.ts';
+import {
+  EventEmitter,
+  NewListenerEvent,
+  RemoveListenerEvent,
+  TooManyListeners,
+  UnhandledError,
+} from './mod.ts';
 
 describe('EventEmitter', () => {
   it('empty edge-case', () => {
@@ -133,9 +139,9 @@ describe('EventEmitter', () => {
     assertThrows(() => {
       emitter.addEventListener('foobar', () => {});
     }, TooManyListeners);
-    // this should not throw
+    // this should not throw, abc is a new event type
     emitter.addEventListener('abc', () => {});
-    // this should not throw
+    // increase the limit
     emitter.maxListeners = 11;
     emitter.addEventListener('foobar', () => {});
     assertThrows(() => {
@@ -145,5 +151,40 @@ describe('EventEmitter', () => {
       emitter.maxListeners = -1;
     }, Error);
     assertEquals(emitter.maxListeners, 11);
+  });
+
+  it('has new/remove events for adding/removing listeners', () => {
+    const emitter = new EventEmitter();
+    const counter = { count: 0, log: [] as (string | symbol)[] };
+    emitter.addEventListener(NewListenerEvent, (e, args) => {
+      assertEquals(e, NewListenerEvent);
+      ++counter.count;
+      counter.log.push(NewListenerEvent);
+    });
+    emitter.addEventListener(RemoveListenerEvent, (e, args) => {
+      assertEquals(e, RemoveListenerEvent);
+      --counter.count;
+      counter.log.push(RemoveListenerEvent);
+    });
+    emitter.addEventListener('foobar', () => {});
+    assertEquals(counter.count, 3);
+    assertEquals(emitter.listenerCount(), 3);
+    assertEquals(emitter.eventNames(), [
+      'newListener',
+      'removeListener',
+      'foobar',
+    ]);
+    emitter.removeAllListeners();
+    assertEquals(emitter.listenerCount(), 0);
+    assertEquals(emitter.eventNames(), []);
+    assertEquals(counter.count, 0);
+    assertEquals(counter.log, [
+      'newListener',
+      'newListener',
+      'newListener',
+      'removeListener',
+      'removeListener',
+      'removeListener',
+    ]);
   });
 });
